@@ -8,13 +8,15 @@ public class GameManager : MonoBehaviour
     private static string tag = "GameManager";
 
     #region Singleton Instance
-    public static GameManager Instance = null;
+    public static GameManager Instance { get; private set; } = null;
     #endregion
 
     #region References
     [Header("References")]
     [SerializeField]
     private TwitchIRC refTwitchIRC;
+    [SerializeField]
+    public ObjectPool RefTileObjectPool;
     #endregion
 
     #region Debugging
@@ -47,6 +49,12 @@ public class GameManager : MonoBehaviour
     {
         if (refDebugChatMessage)
         {
+            switch (c.message)
+            {
+                case "!start":
+                    Game2048.Instance.StartGame(4, 4);
+                    break;
+            }
             refDebugChatMessage.text = $"{c.tags.displayName}: {c.message}";
         }
     }
