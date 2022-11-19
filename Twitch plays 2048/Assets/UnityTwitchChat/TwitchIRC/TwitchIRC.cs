@@ -36,6 +36,7 @@ public class TwitchIRC : MonoBehaviour
     [System.Serializable]
     public class TwitchDetails
     {
+        [HideInInspector]
         public string oauth = string.Empty;
         public string nick = string.Empty;
         public string channel = string.Empty;
