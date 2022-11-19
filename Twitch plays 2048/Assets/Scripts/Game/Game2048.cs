@@ -57,6 +57,12 @@ public class Game2048 : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.LeftArrow))
             Move(Direction.Left);
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+            Move(Direction.Right);
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+            Move(Direction.Up);
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+            Move(Direction.Down);
         if (Input.GetKeyDown(KeyCode.Space))
             StartGame(4, 4);
     }
@@ -96,55 +102,29 @@ public class Game2048 : MonoBehaviour
                     // Loop through all rows
                     for (int r = 0; r < rows; ++r)
                     {
-                        List<Tile> result = new List<Tile>();
-                        List<Tile> tilesInRow = new List<Tile>();//(from c in tiles[r] where c select c).ToList();
-
-                        // Fetch list of movable tiles
+                        // Fetch list of tiles
+                        List<Tile> tilesWithoutSpace = new List<Tile>();
                         bool isSpace = false;
                         for (int c = 0; c < columns; ++c)
                         {
                             var tile = tiles[r][c];
                             if (tile)
                             {
-                                tilesInRow.Add(tile);
+                                tilesWithoutSpace.Add(tile);
                                 if (isSpace)
                                     change = true;
                             }
                             else
-                            {
                                 isSpace = true;
-                            }
                         }
 
-                        // Loop through all tiles in the row
-                        for (int placement = 1; placement < tilesInRow.Count; ++placement)
+                        // Try moving
+                        var result = move(tilesWithoutSpace);
+
+                        // Move tiles if there is a change
+                        if (change || (!change && hasChange(tilesWithoutSpace, result)))
                         {
-                            Tile leftTile = tilesInRow[placement - 1];
-                            Tile current = tilesInRow[placement];
-
-                            // Can merge with left
-                            if (leftTile.IsActive && leftTile.Value == current.Value)
-                            {
-                                leftTile.Merge(current);
-                                addScore(leftTile.Value);
-                            }
-                            
-                            // Add active left tile to result
-                            if (leftTile.IsActive)
-                                result.Add(leftTile);
-
-                            // Add active last tile to result
-                            if (placement >= tilesInRow.Count - 1 && current.IsActive)
-                                result.Add(current);
-                        }
-
-                        // Result empty, use original
-                        if (result.Count <= 0)
-                            result = tilesInRow;
-
-                        if (change || (!change && hasChange(tilesInRow, result)))
-                        {
-                            // Place tiles
+                            // Move tiles
                             for (int c = 0; c < columns; ++c)
                             {
                                 if (c < result.Count)
@@ -154,9 +134,7 @@ public class Game2048 : MonoBehaviour
                                     tiles[r][c] = tile;
                                 }
                                 else
-                                {
                                     tiles[r][c] = null;
-                                }
                             }
                             change = true;
                         }
@@ -165,7 +143,132 @@ public class Game2048 : MonoBehaviour
                 break;
             case Direction.Right:
                 {
+                    // Loop through all rows
+                    for (int r = 0; r < rows; ++r)
+                    {
+                        // Fetch list of tiles
+                        List<Tile> tilesWithoutSpace = new List<Tile>();
+                        bool isSpace = false;
+                        for (int c = columns - 1; c >= 0; --c)
+                        {
+                            var tile = tiles[r][c];
+                            if (tile)
+                            {
+                                tilesWithoutSpace.Add(tile);
+                                if (isSpace)
+                                    change = true;
+                            }
+                            else
+                                isSpace = true;
+                        }
 
+                        // Try moving
+                        var result = move(tilesWithoutSpace);
+
+                        // Move tiles if there is a change
+                        if (change || (!change && hasChange(tilesWithoutSpace, result)))
+                        {
+                            // Move tiles
+                            for (int c = columns - 1; c >= 0; --c)
+                            {
+                                var resultIndex = columns - c - 1;
+                                if (resultIndex < result.Count)
+                                {
+                                    var tile = result[resultIndex];
+                                    tile.Move(r, c);
+                                    tiles[r][c] = tile;
+                                }
+                                else
+                                    tiles[r][c] = null;
+                            }
+                            change = true;
+                        }
+                    }
+                }
+                break;
+            case Direction.Up:
+                {
+                    // Loop through all columns
+                    for (int c = 0; c < columns; ++c)
+                    {
+                        // Fetch list of tiles
+                        List<Tile> tilesWithoutSpace = new List<Tile>();
+                        bool isSpace = false;
+                        for (int r = 0; r < rows; ++r)
+                        {
+                            var tile = tiles[r][c];
+                            if (tile)
+                            {
+                                tilesWithoutSpace.Add(tile);
+                                if (isSpace)
+                                    change = true;
+                            }
+                            else
+                                isSpace = true;
+                        }
+
+                        // Try moving
+                        var result = move(tilesWithoutSpace);
+
+                        // Move tiles if there is a change
+                        if (change || (!change && hasChange(tilesWithoutSpace, result)))
+                        {
+                            for (int r = 0; r < rows; ++r)
+                            {
+                                if (r < result.Count)
+                                {
+                                    var tile = result[r];
+                                    tile.Move(r, c);
+                                    tiles[r][c] = tile;
+                                }
+                                else
+                                    tiles[r][c] = null;
+                            }
+                        }
+                    }
+                }
+                break;
+            case Direction.Down:
+                {
+                    // Loop through all columns
+                    for (int c = 0; c < columns; ++c)
+                    {
+                        // Fetch list of tiles
+                        List<Tile> tilesWithoutSpace = new List<Tile>();
+                        bool isSpace = false;
+                        for (int r = rows - 1; r >= 0; --r)
+                        {
+                            var tile = tiles[r][c];
+                            if (tile)
+                            {
+                                tilesWithoutSpace.Add(tile);
+                                if (isSpace)
+                                    change = true;
+                            }
+                            else
+                                isSpace = true;
+                        }
+
+                        // Try moving
+                        var result = move(tilesWithoutSpace);
+
+                        // Move tiles if there is a change
+                        if (change || (!change && hasChange(tilesWithoutSpace, result)))
+                        {
+                            for (int r = rows - 1; r >= 0; --r)
+                            {
+                                var resultIndex = rows - r - 1;
+                                if (resultIndex < result.Count)
+                                {
+                                    var tile = result[resultIndex];
+                                    tile.Move(r, c);
+                                    tiles[r][c] = tile;
+                                }
+                                else
+                                    tiles[r][c] = null;
+                            }
+                        }
+                    }
                 }
                 break;
         }
@@ -255,6 +358,38 @@ public class Game2048 : MonoBehaviour
                 return true;
         }
         return false;
+    }
+
+    private List<Tile> move(List<Tile> tilesWithoutSpace)
+    {
+        // Loop through all tiles in the row
+        List<Tile> result = new List<Tile>();
+        for (int placement = 1; placement < tilesWithoutSpace.Count; ++placement)
+        {
+            Tile leftTile = tilesWithoutSpace[placement - 1];
+            Tile current = tilesWithoutSpace[placement];
+
+            // Can merge with left
+            if (leftTile.IsActive && leftTile.Value == current.Value)
+            {
+                leftTile.Merge(current);
+                addScore(leftTile.Value);
+            }
+
+            // Add active left tile to result
+            if (leftTile.IsActive)
+                result.Add(leftTile);
+
+            // Add active last tile to result
+            if (placement >= tilesWithoutSpace.Count - 1 && current.IsActive)
+                result.Add(current);
+        }
+
+        // Result empty, use original
+        if (result.Count <= 0)
+            result = tilesWithoutSpace;
+
+        return result;
     }
     #endregion
 }
