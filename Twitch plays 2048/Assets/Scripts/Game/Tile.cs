@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -11,12 +9,14 @@ public class Tile : MonoBehaviour
     public int RowIndex;
     public int ColIndex;
 
+    private SpriteRenderer refSR;
     private TextMeshPro refValueText;
 
     #region MonoBehaviour
     private void Awake()
     {
         refValueText = GetComponentInChildren<TextMeshPro>();
+        refSR = GetComponentInChildren<SpriteRenderer>();
     }
     #endregion
 
@@ -54,8 +54,14 @@ public class Tile : MonoBehaviour
     private void updateValue(int newValue)
     {
         Value = newValue;
+
+        // Update value text
         if (refValueText)
             refValueText.text = Value.ToString();
+
+        // Update tile color
+        if (refSR)
+            refSR.color = Game2048.Instance.GetTileColor(Value);
     }
     #endregion
 }

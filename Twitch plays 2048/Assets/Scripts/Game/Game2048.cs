@@ -1,7 +1,16 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
+
+[Serializable]
+public struct ColorPair
+{
+    public int Value;
+    public Color TileColor;
+}
 
 public class Game2048 : MonoBehaviour
 {
@@ -19,6 +28,10 @@ public class Game2048 : MonoBehaviour
     public static Game2048 Instance { get; private set; } = null;
     #endregion
 
+    #region Public Properties
+    public Dictionary<int, Color> Colors { get; private set; } = new Dictionary<int, Color>();
+    #endregion
+
     #region Settings
     [Header("Settings")]
     [SerializeField]
@@ -29,6 +42,14 @@ public class Game2048 : MonoBehaviour
     private float tileSpacing = 0.2f;
     [SerializeField]
     private float tileZPos = -0.1f;
+    [SerializeField]
+    private List<ColorPair> colors = new List<ColorPair>();
+    #endregion
+
+    #region References
+    [Header("References")]
+    [SerializeField]
+    private TextMeshProUGUI refScoreText; 
     #endregion
 
     public int TileCounter = 0;
@@ -44,8 +65,17 @@ public class Game2048 : MonoBehaviour
     private void Awake()
     {
         if (Instance)
+        {
             Logger.Log(tag, "Attempting to overwrite a singleton instance", Logger.LogType.Warning);
+            return;
+        }
         Instance = this;
+
+        // Assign colors dictionary
+        foreach (var c in colors)
+        {
+            Colors.Add(c.Value, c.TileColor);
+        }
     }
 
     private void Start()
@@ -72,6 +102,11 @@ public class Game2048 : MonoBehaviour
         // Assign width and height
         columns = newColumn.GetValueOrDefault(columns);
         rows = newRow.GetValueOrDefault(rows);
+
+        // Reset score
+        Score = 0;
+        if (refScoreText)
+            refScoreText.text = Score.ToString();
 
         // Clear tiles
         GameManager.Instance.RefTileObjectPool.ResetAll();
@@ -300,7 +335,7 @@ public class Game2048 : MonoBehaviour
 
     private int generateNewTileValue()
     {
-        return 2 * Random.Range(1, 3);
+        return 2 * UnityEngine.Random.Range(1, 3);
     }
 
     private void generateTile(int count = 1)
@@ -315,8 +350,8 @@ public class Game2048 : MonoBehaviour
             while (true)
             {
                 // Generate random tile index
-                rowIndex = Random.Range(0, rows);
-                colIndex = Random.Range(0, columns);
+                rowIndex = UnityEngine.Random.Range(0, rows);
+                colIndex = UnityEngine.Random.Range(0, columns);
 
                 // Check occupied
                 if (!tiles[rowIndex][colIndex])
@@ -339,6 +374,8 @@ public class Game2048 : MonoBehaviour
     private void addScore(int score)
     {
         Score += score;
+        if (refScoreText)
+            refScoreText.text = Score.ToString();
         if (score >= HighScore)
         {
             HighScore = Score;
@@ -390,6 +427,16 @@ public class Game2048 : MonoBehaviour
             result = tilesWithoutSpace;
 
         return result;
+    }
+
+    public Color GetTileColor(int value)
+    {
+        Color c;
+        if (Colors.TryGetValue(value, out c))
+        {
+            return c;
+        }
+        return colors.Last().TileColor;
     }
     #endregion
 }
