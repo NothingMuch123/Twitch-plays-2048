@@ -311,6 +311,12 @@ public class Game2048 : MonoBehaviour
         // Generate new tile
         if (change)
             generateTile();
+
+        if (isGameOver())
+        {
+            if (refScoreText)
+                refScoreText.text = "Game Over";
+        }
     }
 
     #region Helper Functions
@@ -320,9 +326,11 @@ public class Game2048 : MonoBehaviour
         rowIndex = Mathf.Clamp(rowIndex, 0, rows - 1);
 
         // Calculate starting position
+        var totalX = (columns * tileScale.x) + (tileSpacing * (columns - 1));
+        var totalY = (rows * tileScale.y) + (tileSpacing * (rows - 1));
         var starting = new Vector3(
-            -(((columns * tileScale.x + (tileSpacing * (columns - 1))) * 0.5f) + (tileScale.x * 0.5f)),
-            ((rows * tileScale.y + (tileSpacing * (rows - 1))) * 0.5f) - (tileScale.y * 0.5f),
+            -(totalX * 0.5f) + (tileScale.x * 0.5f),
+            (totalY * 0.5f) - (tileScale.y * 0.5f),
             tileZPos
             );
 
@@ -437,6 +445,32 @@ public class Game2048 : MonoBehaviour
             return c;
         }
         return colors.Last().TileColor;
+    }
+
+    private bool isGameOver()
+    {
+        if (TileCounter >= rows * columns)
+        {
+            for (int r = 0; r < rows; ++r)
+            {
+                for (int c = 0; c < columns; ++c)
+                {
+                    var current = tiles[r][c];
+                    
+                    // Check able to merge with right tile
+                    Tile right = c + 1 < columns ? tiles[r][c + 1] : null;
+                    if (right && current.Value == right.Value)
+                        return false;
+
+                    // Check able to merge with bototm tile
+                    Tile bottom = r + 1 < rows ? tiles[r + 1][c] : null;
+                    if (bottom && current.Value == bottom.Value)
+                        return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
     #endregion
 }
