@@ -56,9 +56,12 @@ public class Game2048 : MonoBehaviour
 
     // Commonly used variables
     private Vector3 tileScale;
+    private Timer timer = new Timer();
 
     // Game information
     private List<List<Tile>> tiles;
+
+    // Score
     public int Score { get; private set; } = 0;
     public int HighScore { get; private set; } = 0;
 
@@ -81,17 +84,22 @@ public class Game2048 : MonoBehaviour
     private void Start()
     {
         tileScale = GameManager.Instance.RefTileObjectPool.RefBlueprint.transform.localScale;
+
+        timer.Setup(Settings.Instance.AnimationTime, true);
     }
 
     private void Update()
     {
+        // Update timer
+        timer.Update(Time.deltaTime);
+
         if (Input.GetKeyDown(KeyCode.LeftArrow))
             Move(Direction.Left);
-        if (Input.GetKeyDown(KeyCode.RightArrow))
+        else if (Input.GetKeyDown(KeyCode.RightArrow))
             Move(Direction.Right);
-        if (Input.GetKeyDown(KeyCode.UpArrow))
+        else if (Input.GetKeyDown(KeyCode.UpArrow))
             Move(Direction.Up);
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
             Move(Direction.Down);
         if (Input.GetKeyDown(KeyCode.Space))
             StartGame(4, 4);
@@ -125,10 +133,15 @@ public class Game2048 : MonoBehaviour
 
         // Generate 2 tiles
         generateTile(2);
+        timer.Reset(false);
     }
 
     public void Move(Direction dir)
     {
+        // Do not move if animation is not done
+        if (!timer.Pause && !timer.IsTime)
+            return;
+
         bool change = false;
         switch (dir)
         {
@@ -310,7 +323,10 @@ public class Game2048 : MonoBehaviour
 
         // Generate new tile
         if (change)
+        {
             generateTile();
+            timer.Reset(false);
+        }
 
         if (isGameOver())
         {
@@ -320,6 +336,11 @@ public class Game2048 : MonoBehaviour
     }
 
     #region Helper Functions
+    public Vector3 GetTilePosition(Tile t)
+    {
+        return GetTilePosition(t.RowIndex, t.ColIndex);
+    }
+
     public Vector3 GetTilePosition(int rowIndex, int colIndex)
     {
         colIndex = Mathf.Clamp(colIndex, 0, columns - 1);
